@@ -52,16 +52,17 @@ func (p *Packet) Decode(conn net.Conn) {
 	p.End = header[15]
 	p.Cmd = header[16]
 
+	log.Println("ready to get packet data, len is:", p.PacketSize)
+
 	data := make([]byte, p.PacketSize-1)
 	for {
 		n, err := io.ReadFull(conn, data)
-
 		if err != nil {
 			log.Println("error receiving msg, bytes:", n, "reason:", err)
 			break
 		}
-		if uint16(n) == p.PacketSize {
-			log.Println("get packet data size is:", n)
+		if uint16(n) == (p.PacketSize - 1) {
+			log.Println("get packet data size %d", n)
 			break
 		}
 	}

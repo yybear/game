@@ -1,11 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	. "game/event"
 	. "game/packet"
 	"log"
 	"net"
 	"os"
+	//"strconv"
 )
 
 func main() {
@@ -30,16 +32,27 @@ func handler(conn net.Conn) {
 	var packet Packet
 	packet.Decode(conn)
 
-	ch := make(chan Packet, 100000)
+	var req interface{}
+	err := json.Unmarshal(packet.Data, &req)
+	checkError(err)
 
-	for {
-		ch <- packet
+	m := req.(map[string]interface{})
+	log.Println("req is:", m)
+
+	//sessionId := m["session_id"].(string)
+	//appId := int(m["app_id"].(float64))
+	code := int(m["type"].(float64))
+	switch code {
+	case LOGIN_GAME:
+		log.Println("user login")
+	default:
+		log.Println("user req type: ", m["type"])
 	}
 }
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		log.Fatalf("Fatal error: %s", err.Error())
 		os.Exit(1)
 	}
 }
